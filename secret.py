@@ -13,3 +13,6 @@ s_api_key = ''
 
 # Binary Edge API
 binary_api = ''
+
+# Hunter.io API
+hunter_api = ''
