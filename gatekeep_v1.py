@@ -27,9 +27,9 @@ def start():
     platform = input(colored("""\
     OPTIONS:
     [1] Dehashed
-    [2] Shodan
-    [3] Snusbase
-    [4] Darksearch
+    [2] Shodan (Temp Removed)
+    [3] Hunter.io
+    [4] Darksearch (Temp Removed)
     [5] BinaryEdge
 
     \n""", "magenta") + "> ")         
@@ -373,7 +373,6 @@ def dehashed_func():
     response = requests.get("https://api.dehashed.com/search?query=\"" + parm + "\"", auth=(dehashed_email, dehashed_api_key), headers={'Accept':'application/json'}) # QUERY
     data = response.json()
     str(data) # <~~ Typecast json response as string
-    json.dumps(data) # <~~ Convert json object to json string
     json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object 
 
     # Iterate through the python object and grab specified values and pump them into corresponding columns in the DB table
@@ -394,50 +393,90 @@ def dehashed_func():
     
     print("Results located in " + test + ".csv")
 
-def sho_query(): # Shodan wrapper !!! Needs muchhhh more to be useful
-    # Connect to API
-    api = shodan.Shodan(s_api_key)
-    try:
-        # Perform the search
-        query = ' '.join(parm) # Uses same parameter provided by user
-        result = api.search(query)
-    except Exception as e:
-        print('Error: %s' % e)
-        sys.exit(1)
-    # Connect to MySQL DB    
-    db_connect = pymysql.connect(sql_ip,user,passwd,db) # <~~ Connect to MySQL DB using auth-data from config file
-    cursor = db_connect.cursor()
-    # Iterate through the results and pipe them into the DB
-    for entry in result['matches']: # <~~ Check json output for this; Top of file /v2/query/image/search 
-        cursor.execute("INSERT INTO test_db." + test + " (id, email, password, ip_discovery) VALUES (NOT NULL,NOT NULL,NOT NULL,%s)", (entry["ip_str"]))
-    db_connect.commit()
+def hunter_io():
+    def operation_1():
+        if platform_1 == "1":
+            try:
+                hunter_io_domain()
+            except:
+                pass 
+            hunter_io_domain()
+            #landing_1()
 
-"""
-    # Output IP list to textfile 
-    query = 'SELECT ip_discovery FROM ' + test
-    out = cursor.execute(query)    
-    with open(test + "_ip_list.txt","w") as outfile:
-        for row in cursor:
-            db_connect = pymysql.connect(sql_ip,user,passwd,db) # <~~ Connect to MySQL DB using auth-data from config file
-            cursor = db_connect.cursor()
-            print("\nQuerying Dehashed... \n")
-            response = requests.get("", auth=(dehashed_email, dehashed_api_key), headers={'Accept':'application/json'}) # QUERY
+        if platform_1 == "2":
+            try:
+                hunter_io_email()
+            except:
+                pass
+            hunter_io_email()
+            landing_1()
+
+        if platform_1 == "3":
+            try:
+                hunter_io_email_verify()
+            except:
+                pass
+            hunter_io_email_verify()
+            landing_1()
+
+    def hunter_io_domain():
+        domain = input('Enter domain to to enumerate: \n> ')
+        try:  
+            response = requests.get('https://api.hunter.io/v2/domain-search?domain=' + domain + '&api_key=' + hunter_api)
             data = response.json()
-            str(data) # <~~ Typecast json response as string
-            json.dumps(data) # <~~ Convert json object to json string /v2/query/image/search 
-            json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object 
-    
-    # Iterate through the python object and grab specified values and pump them into corresponding columns in the DB table
-    for entry in json_obj["entries"]: # <~~ Check json output for this; Top of file
-        cursor.execute("INSERT INTO test_db." + test + " (id, email, password) VALUES (%s,%s,%s)", (entry["id"], entry["email"], entry["password"]))
-    db_connect.commit()
-"""    
+            print(data)
+        except:
+            pass
+
+    def hunter_io_email():
+        print('This will attempt to find the work related email of an individual whos name you have enumerated...\n')
+        domain = input('Enter domain to to enumerate: \n> ')
+        first_name = input('First name of individual: \n')
+        last_name = input('Enter last name of individual: \n')
+        try:  
+            response = requests.get('https://api.hunter.io/v2/email-finder?domain=' + domain + '&first_name=' + first_name + '&last_name=' + last_name + '&api_key=' + hunter_api)
+            data = response.json()
+            print(data)
+        except:
+            pass
+
+    def hunter_io_email_verify():
+        email = input('Enter email to attempt to verify: \n> ')
+        try:  
+            response = requests.get('https://api.hunter.io/v2/email-verifier?email=' + email + '&api_key=' + hunter_api)
+            data = response.json()
+            print(data)
+        except:
+            pass
+
+    def landing_1():
+        # Landing Page (the "r" in front of the triple quotes == raw)
+        print(colored(r"""
+        __    __   __    __  .__   __. .___________. _______ .______         __    ______   
+        |  |  |  | |  |  |  | |  \ |  | |           ||   ____||   _  \       |  |  /  __  \  
+        |  |__|  | |  |  |  | |   \|  | `---|  |----`|  |__   |  |_)  |      |  | |  |  |  | 
+        |   __   | |  |  |  | |  . `  |     |  |     |   __|  |      /       |  | |  |  |  | 
+        |  |  |  | |  `--'  | |  |\   |     |  |     |  |____ |  |\  \----.__|  | |  `--'  | 
+        |__|  |__|  \______/  |__| \__|     |__|     |_______|| _| `._____(__)__|  \______/  
+                                                                                        
+        """, "red"))                                                               
+        print(colored("Select a method to use \n", "white"))
+        global platform_1
+        # Get user input
+        platform_1 = input(colored("""\
+        OPTIONS:
+        [1] Domain search (ex. megacorp.com)
+        [2] Email search (ex. fidel.castro@megacorp.com, Requires company domain and an individuals first and last name)
+        [3] Email verification ()
+        \n""", "magenta") + "> ")         
+        operation_1() # Calling to the function whos IF statements launch the function associated with selected platform, located at bottom of code  
+    landing_1()
 
 # global operation
 def operation():
     if platform == "1":
         try:
-            table_create()
+            dehashed_func()
         except:
             pass # <~~ If error, just continue; display nothing; Usually caused by existing DB
         dehashed_func()
@@ -451,6 +490,14 @@ def operation():
         sho_query()
         start()
 
+    if platform == "3":
+        try:
+            hunter_io()
+        except:
+            pass
+        hunter_io()
+        start()
+
     if platform == "5":
         try:
             #table_create()
@@ -459,6 +506,7 @@ def operation():
             pass
         bin_edge()
         start()
+    
 try:
     start()
 except KeyboardInterrupt: # Keyboard interrupt supported
