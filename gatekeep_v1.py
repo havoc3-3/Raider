@@ -400,31 +400,49 @@ def hunter_io():
                 hunter_io_domain()
             except:
                 pass 
-            hunter_io_domain()
-            #landing_1()
+            landing()
 
         if platform_1 == "2":
             try:
                 hunter_io_email()
             except:
                 pass
-            hunter_io_email()
-            landing_1()
+            landing()
 
         if platform_1 == "3":
             try:
                 hunter_io_email_verify()
             except:
                 pass
-            hunter_io_email_verify()
-            landing_1()
+            landing()
 
     def hunter_io_domain():
         domain = input('Enter domain to to enumerate: \n> ')
+        parm = domain.lower() # <~~ Convert input to all lower, avoids duplicate DB's
+        stripped = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
         try:  
             response = requests.get('https://api.hunter.io/v2/domain-search?domain=' + domain + '&api_key=' + hunter_api)
-            data = response.json()
-            print(data)
+            data = response.json().get('data')
+            new_dict = data['emails'] # Grab nested list emails
+            list_1 = []
+            list_2 = []
+            writer = csv.writer(open(stripped + '_hunter_io.csv', 'w', newline='\n'))
+            writer.writerow(['First', 'Last','Position', 'Email','URI','Extracted Data','Last Seen Date','Still On Page'])
+            def task_a():
+                for i in range(len(new_dict)):
+                    h = (new_dict[i]['first_name'], new_dict[i]['last_name'], new_dict[i]['position'], new_dict[i]['value'])
+                    list_1.append(h)
+            def task_b():    
+                for d in new_dict:
+                    for x in d['sources']:
+                        k = (x['uri'], x['extracted_on'], x['last_seen_on'], x['still_on_page'])
+                        list_2.append(k)
+            def task_c():
+                for g in range(len(list_2)):
+                    writer.writerow(list_1[g] + list_2[g])
+            task_a()
+            task_b()
+            task_c()
         except:
             pass
 
@@ -435,8 +453,11 @@ def hunter_io():
         last_name = input('Enter last name of individual: \n')
         try:  
             response = requests.get('https://api.hunter.io/v2/email-finder?domain=' + domain + '&first_name=' + first_name + '&last_name=' + last_name + '&api_key=' + hunter_api)
-            data = response.json()
-            print(data)
+            data = response.json().get('data')
+            writer = csv.writer(open(first_name+'_'+last_name+'.csv', 'w', newline='\n'))
+            writer.writerow(['First', 'Last', 'Email', 'Domain'])
+            list1 = (data['first_name'], data['last_name'], data['email'], data['domain'])
+            writer.writerow(list1)
         except:
             pass
 
@@ -444,15 +465,17 @@ def hunter_io():
         email = input('Enter email to attempt to verify: \n> ')
         try:  
             response = requests.get('https://api.hunter.io/v2/email-verifier?email=' + email + '&api_key=' + hunter_api)
-            data = response.json()
-            print(data)
+            data = response.json().get('data')
+            writer = csv.writer(open(email+'.csv', 'w', newline='\n'))
+            writer.writerow(['Result', 'Score(level of confidence)','Email', 'MX_records'])
+            list3 = (data['result'], data['score'], data['email'], data['mx_records'])
+            writer.writerow(list3)
         except:
             pass
-
-    def landing_1():
+    def landing():
         # Landing Page (the "r" in front of the triple quotes == raw)
         print(colored(r"""
-        __    __   __    __  .__   __. .___________. _______ .______         __    ______   
+         __    __   __    __  .__   __. .___________. _______ .______         __    ______   
         |  |  |  | |  |  |  | |  \ |  | |           ||   ____||   _  \       |  |  /  __  \  
         |  |__|  | |  |  |  | |   \|  | `---|  |----`|  |__   |  |_)  |      |  | |  |  |  | 
         |   __   | |  |  |  | |  . `  |     |  |     |   __|  |      /       |  | |  |  |  | 
@@ -467,11 +490,10 @@ def hunter_io():
         OPTIONS:
         [1] Domain search (ex. megacorp.com)
         [2] Email search (ex. fidel.castro@megacorp.com, Requires company domain and an individuals first and last name)
-        [3] Email verification ()
+        [3] Email verification 
         \n""", "magenta") + "> ")         
         operation_1() # Calling to the function whos IF statements launch the function associated with selected platform, located at bottom of code  
-    landing_1()
-
+    landing()
 # global operation
 def operation():
     if platform == "1":
