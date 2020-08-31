@@ -32,9 +32,36 @@ def start():
     [4] Darksearch (Temp Removed)
     [5] BinaryEdge
 
-    \n""", "magenta") + "> ")         
+    \n""", "magenta") + "> ")
     operation() # Calling to the function whos IF statements launch the function associated with selected platform, located at bottom of code  
- 
+
+# Function to query Dehashed API, parse data, store in DB, output to .csv file unique to target
+def dehashed_func():
+    inp = input("Parameter to test for: \n> ")
+    parm = inp.lower() # <~~ Convert input to all lower, avoids duplicate DB's
+    test = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
+    print("\nQuerying Dehashed... \n")
+    response = requests.get("https://api.dehashed.com/search?query=\"" + parm + "\"", auth=(dehashed_email, dehashed_api_key), headers={'Accept':'application/json'}) # QUERY
+    data = response.json().get('entries')
+    writer = csv.writer(open(test+'_dehashed.csv', 'w', newline='\n'))
+    writer.writerow(['ID', 'Email', 'Password', 'Hashed_Password', 'Obtained_From'])
+    for i in range(len(data)):
+        writer.writerow([data[i]['id'], data[i]['email'], data[i]['password'], data[i]['hashed_password'], data[i]['obtained_from']]) 
+        
+def sho_query():
+    try:    
+        # Connect to Shodan API
+        api = shodan.Shodan(s_api_key)
+        inp = input('Query term: \n> ')
+        result = api.search(inp)
+
+        for service in result['matches']:
+            print(service['ip_str'])
+    except Exception as e:
+        print('Error: %s' % e)
+        sys.exit(1)
+
+
 # Binary Edge 
 def bin_edge ():
     print(colored(r"""
@@ -65,7 +92,7 @@ def bin_edge ():
     [X] Target data
     Type "back" to return to the previous menu  
     \n""", "magenta") + "> ")
-        
+
     # Query info about specific host
     if bin_mode == "1":
         try:
@@ -79,11 +106,8 @@ def bin_edge ():
                 'X-Key': binary_api,
             }
             response = requests.get('https://api.binaryedge.io/v2/query/ip/' + host, headers=headers)
-            data = response.json()    
-            
+            data = response.json()   
             str(data) # <~~ Typecast json response as string
-            json_obj = json.loads(json.dumps(data)) # <~~ Loads converts json string to python object
-
             # Iterate through nested json data, grab key:values based on object name            
             def findkeys(node, kv):
                 if isinstance(node, list):
@@ -104,9 +128,6 @@ def bin_edge ():
                 dict_writer = csv.DictWriter(output_file, keys)
                 dict_writer.writeheader()
                 dict_writer.writerows(oput)
-            # This command copies the newly created CSV into the secure serer configured by MySQL, this is to be able to load the data into the SQL server
-
-        #bin_edge()
         except:
             pass
         bin_edge()
@@ -125,7 +146,6 @@ def bin_edge ():
             response = requests.get('https://api.binaryedge.io/v2/query/ip/historical/' + host, headers=headers)
             data = response.json()
             str(data) # <~~ Typecast json response as string
-            json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object
             # referencing the object name in the json, device built in previous function
             oput = list(findkeys(data, 'target'))
             keys = oput[0].keys()
@@ -134,8 +154,6 @@ def bin_edge ():
                 dict_writer = csv.DictWriter(output_file, keys)
                 dict_writer.writeheader()
                 dict_writer.writerows(oput)
-
-        #bin_edge()
         except:
             pass
         bin_edge()
@@ -150,14 +168,12 @@ def bin_edge ():
             headers = {
                 'X-Key': binary_api,
             }
-
             response = requests.get('https://api.binaryedge.io/v2/query/dataleaks/email/' + email, headers=headers)
             data = response.json().get('events')
             writer = csv.writer(open(email+'.csv', 'w', newline='\n'))
             writer.writerow(['Name of Breach'])
             for i in data:
                 writer.writerow(i.split())
-
         except:
             pass
         bin_edge()
@@ -180,7 +196,6 @@ def bin_edge ():
             writer.writerow(['Leak', 'Count'])
             for i in range(len(data)):
                 writer.writerow([data[i]['leak'], data[i]['count']])
-
         except:
             pass
         bin_edge()
@@ -192,38 +207,19 @@ def bin_edge ():
                          "> ")
             parm = domain.lower() # <~~ Convert input to all lower, avoids duplicate DB's
             test = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
-            # Connect to MySQL server
-            db_connect = pymysql.connect(sql_ip,user,passwd,db) # <~~ Connect to MySQL DB using creds from secret.py
-            cursor = db_connect.cursor()
-            try:
-                cursor.execute("CREATE TABLE IF NOT EXISTS " + test + " (event text)")
-                db_connect.commit()
-            except:
-                pass
+            
             # GET request to query BinaryEdge API
             headers = {
                 'X-Key': binary_api,
             }
             response = requests.get('https://api.binaryedge.io/v2/query/domains/subdomain/' + domain, headers=headers) 
-            data = response.json()
-            str(data) # <~~ Typecast json response as string
-            # Convert json object to json string
-            json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object
-            #list1 = json_obj["events"]
+            data = response.json().get('events')
+            print(data)
+            writer = csv.writer(open(test + '_bin_edge_subdomain.csv', 'w', newline='\n'))
+            writer.writerow(['Subdomains'])
+            for i in data:
+                writer.writerow(i.split())
 
-            cursor.executemany("INSERT INTO test_db." + test + " (event) VALUES (%s)", json_obj["events"])
-            db_connect.commit()
-
-            # MySQL command to Pull newly discovered data
-            query = 'SELECT event FROM ' + test
-            cursor.execute(query)
-
-            # Create a .csv file with values from DB
-            with open(test + "_binaryedge_subdom.csv","w") as outfile:
-                writer = csv.writer(outfile)
-                writer.writerow(col[0] for col in cursor.description)
-                for row in cursor:
-                    writer.writerow(row)
         #bin_edge()
         except:
             pass
@@ -235,79 +231,18 @@ def bin_edge ():
             domain = input("Enter Leak: \n")
             parm = domain.lower() # <~~ Convert input to all lower, avoids duplicate DB's
             test = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
-            
-            db_connect = pymysql.connect(sql_ip,user,passwd,db) # <~~ Connect to MySQL DB using creds from secret.py
-            cursor = db_connect.cursor()
-            try:
-                cursor.execute("CREATE TABLE IF NOT EXISTS " + test + " (leak text, count text)")
-                db_connect.commit()
-            except:
-                pass
-            
+
             # GET request to query BinaryEdge API
             headers = {
                 'X-Key': binary_api,
             }
-
             response = requests.get('https://api.binaryedge.io/v2/query/dataleaks/info/' + domain, headers=headers)
-
             data = response.json()
-            str(data) # <~~ Typecast json response as string
-            json.dumps(data) # <~~ Convert json object to json string
-            json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object
-
-            for group in json_obj["groups"]: # <~~ Check json output for this; Top of file
-                cursor.execute("INSERT INTO test_db." + test + " (leak, count) VALUES (%s,%s)", (group["leak"], group["count"]))
-            db_connect.commit()
-            
-            # MySQL command to Pull newly discovered data
-            query = 'SELECT leak, count FROM ' + test
-            cursor.execute(query)
-
-            # Create a .csv file with values from DB
-            with open(test + "_binaryedge_dataleak.csv","w") as outfile:
-                writer = csv.writer(outfile)
-                writer.writerow(col[0] for col in cursor.description)
-                for row in cursor:
-                    writer.writerow(row)
+            print(data)
         except:
             pass
         #bin_edge()
 
-# Function to query Dehashed API, parse data, store in DB, output to .csv file unique to target
-def dehashed_func():
-    inp = input("Parameter to test for: \n> ")
-    parm = inp.lower() # <~~ Convert input to all lower, avoids duplicate DB's
-    test = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
-    db_connect = pymysql.connect(sql_ip,user,passwd,db) # <~~ Connect to MySQL DB using
-    cursor = db_connect.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS " + test + " (id text, email text, password text)")
-    db_connect.commit()
-
-    
-    print("\nQuerying Dehashed... \n")
-    response = requests.get("https://api.dehashed.com/search?query=\"" + parm + "\"", auth=(dehashed_email, dehashed_api_key), headers={'Accept':'application/json'}) # QUERY
-    data = response.json()
-    str(data) # <~~ Typecast json response as string
-    json_obj = json.loads(json.dumps(data)) # <~~ Converts json string to python object 
-
-    # Iterate through the python object and grab specified values and pump them into corresponding columns in the DB table
-    for entry in json_obj["entries"]: # <~~ Check json output for this; Top of file
-        cursor.execute("INSERT INTO test_db." + test + " (id, email, password) VALUES (%s,%s,%s)", (entry["id"], entry["email"], entry["password"]))
-    db_connect.commit()
-
-    # MySQL command to Pull newly discover /v2/query/image/search 
-    query = 'SELECT id, email, password FROM ' + test
-    cursor.execute(query)
-    
-    # Create a .csv file with values from DB
-    with open(test + ".csv","w") as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(col[0] for col in cursor.description)
-        for row in cursor:
-            writer.writerow(row)
-    
-    print("Results located in " + test + ".csv")
 
 def hunter_io():
     def operation_1():
@@ -410,6 +345,7 @@ def hunter_io():
         \n""", "magenta") + "> ")         
         operation_1() # Calling to the function whos IF statements launch the function associated with selected platform, located at bottom of code  
     landing()
+
 # global operation
 def operation():
     if platform == "1":
