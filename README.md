@@ -34,6 +34,9 @@ Once accounts have been made, place your API keys in the secret.py file. If you 
 
 ![](readme_images/r8r_5.png ) 
 
+As you interact with the Raider application, the results of the queries fired off are stored in your current working directory as CSV files. 
+
+![](readme_images/r8r_6.png ) 
 
 
 
