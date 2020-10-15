@@ -5,7 +5,7 @@ import csv
 import sys
 
 
-hunter_api = '952a0e7fc3d16447ce334b8962b4584215e5c0e7'
+hunter_api = ''
 
 def start():
     # Landing Page (the "r" in front of the triple quotes == raw)
