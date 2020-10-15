@@ -21,7 +21,12 @@ Create a new directory under any name, store the raider_v2.py and secret.py file
 Accounts and API keys are necessary to query the various platforms included in Raider 
 
 https://www.dehashed.com/api
+
 https://developer.shodan.io/
+
 https://hunter.io/api
+
 https://www.binaryedge.io/
+
 https://darksearch.io/
+
