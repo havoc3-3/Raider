@@ -5,3 +5,5 @@ To ensure that Raider will run out of the box, be sure to download the required 
 ![](readme_images/r8r_2.PNG )
 
 Accomplish this by using `pip3 install ______`
+
+![](readme_images/r8r_3.PNG )
