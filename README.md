@@ -2,7 +2,7 @@
 
 Raider is an OSINT tool written in python3 for use in professional assesments. It can be used on both Windows and Linux. 
 
-Ensure that you have an up to date version of pyhton3 on your system. 
+Ensure that you have an up to date version of python3 on your system. 
 
 ![](readme_images/r8r_4.PNG )
 
