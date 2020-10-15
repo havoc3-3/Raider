@@ -32,7 +32,7 @@ https://darksearch.io/
 
 Once accounts have been made, place your API keys in the secret.py file. If you would to change the name of the secret.py file for obscurity, please be sure that the code reflects the change. This file also MUST be in the same directory as raider.py. 
 
-![](readme_images/r8r_5.PNG ) 
+![](readme_images/r8r_5.png ) 
 
 
 
