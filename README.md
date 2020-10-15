@@ -14,3 +14,11 @@ Accomplish this by using `pip3 install ______` (We need python3 compatible libra
 
 ![](readme_images/r8r_3.PNG )
 
+Create a new directory under any name, store the raider_v2.py and secret.py files in this directory. This directory is where your clients information will be stored as CSV files are created. 
+
+![](readme_images/r8r_1.PNG )
+
+
+
+
+https://www.dehashed.com/
