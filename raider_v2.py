@@ -4,6 +4,7 @@ import subprocess
 import requests
 import pymysql
 import shodan
+import shutil
 import json
 import csv
 import sys
@@ -11,13 +12,14 @@ import re
 
 def start():
     # Landing Page (the "r" in front of the triple quotes == raw)
+
     print(colored(r"""
-     _____       _     _           
-    |  __ \     (_)   | |          
-    | |__) |__ _ _  __| | ___ _ __ 
-    |  _  // _` | |/ _` |/ _ \ '__|
-    | | \ \ (_| | | (_| |  __/ |   
-    |_|  \_\__,_|_|\__,_|\___|_|   
+                     ____  ___  ____  
+                    |  _ \( _ )|  _ \ 
+                    | |_) / _ \| |_) |
+                    |  _ < (_) |  _ < 
+                    |_| \_\___/|_| \_\
+                        
     """, "red"))                                                               
     print(colored("Welcome to Raider_v2, a field version of our OSINT Framework\n\n"
                 "Ensure that your API keys are located where they need to be...\n\n"
@@ -37,7 +39,7 @@ def start():
 
 # Function to query Dehashed API, parse data, store in DB, output to .csv file unique to target
 def dehashed_func():
-    inp = input("Parameter to test for: \n> ")
+    inp = input("Parameter to test for: (Ex. megacorp.com)\n> ")
     parm = inp.lower() # <~~ Convert input to all lower, avoids duplicate DB's
     test = re.sub('\.com$', '', parm) # <~~ Strip user input of .com suffix, stored in var test
     print("\nQuerying Dehashed... \n")
